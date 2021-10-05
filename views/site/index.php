@@ -30,14 +30,11 @@ $this->title = 'News';
             <button type="submit"  class="btn btn-outline-secondary">Изменить новость</button>
         </form>
     </div>
-    <?php if(   empty($posts[0])): ?>
-        Ничего не <найдено></найдено>
-    <?php else:?>
         <?php if(isset($posts[0])): ?>
         <div class="body-content">
             <div class="row">
                 <?php foreach ($posts as $post): ?>
-                    <div id="<?= $post['id']?>"  class="col-lg-4">
+                    <div id="<<?=$post['id']?>>"  class="col-lg-4">
                         <h2><?=$post['title']?></h2>
                         <p><?=$post['text']?></p>
                         <form action="">
@@ -56,7 +53,6 @@ $this->title = 'News';
             </div>
         </div>
         <?php endif;?>
-    <?php endif;?>
         <div class="col-lg-4">
             <h2>Добавить новость</h2>
             <form action="add" method="GET">
