@@ -67,11 +67,8 @@ class SiteController extends Controller
         {
             $postTitle = yii::$app->request->get()['input'];
             $posts = $bd->getPostByName($postTitle);
-
-            if(!isset($posts[1]))
-                return $this->render('index', ['posts' => $posts]);
-            else
-                return $this->render('index', ['posts' => $posts]);
+    
+            return $this->render('index', ['posts' => $posts]);
         }
         else{
             $posts = $bd->getAll();
