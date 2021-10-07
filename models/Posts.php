@@ -28,7 +28,7 @@ class Posts extends ActiveRecord
     public function addPost($title, $text)
     {
         $connection = Yii::$app->db;
-        $connection->CreateCommand()->batchInsert('posts', ['title', 'text'], [[$title, $text]])->execute();
+        $connection->CreateCommand()->batchInsert('posts', ['title', 'text', 'author'], [[$title, $text, Yii::$app->user->id]])->execute();
     }
     public function updatePost($id, $title, $text)
     {

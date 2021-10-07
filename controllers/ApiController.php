@@ -34,6 +34,7 @@ class ApiController extends ActiveController
         $newPost = new ApiPosts();
         $newPost->title = $params['title'];
         $newPost->text = $params['text'];
+        $newPost->author = Yii::$app->user->id;
         $newPost->save();
         return $this->asJson(Yii::$app->db->getLastInsertID());
     }

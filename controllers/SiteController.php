@@ -2,9 +2,11 @@
 
 namespace app\controllers;
 
+use app\models\ApiPosts;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
@@ -21,12 +23,25 @@ class SiteController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['logout'],
+                'only' => ['logout', 'update-post', 'add-post', 'delete-post'],
                 'rules' => [
                     [
                         'actions' => ['logout'],
                         'allow' => true,
                         'roles' => ['@'],
+                    ],
+                    [
+                        'actions' => ['update-post', 'delete-post'],
+                        'allow' => true,
+                        'roles' => ['updatePost'],
+                        'roleParams' => function() {
+                            return ['post' => ApiPosts::findOne(['id' => Yii::$app->request->get('id')])];
+                        },
+                    ],
+                    [
+                        'actions' => ['add-post'],
+                        'allow' => true,
+                        'roles' => ['createPost'],
                     ],
                 ],
             ],
@@ -85,9 +100,9 @@ class SiteController extends Controller
 
     public function actionUpdatePost($id, $title, $text)
     {
-        $bd = new Posts();
-        $bd->updatePost($id, $title, $text);
-        return $this->redirect('/');
+            $bd = new Posts();
+            $bd->updatePost($id, $title, $text);
+            return $this->redirect('/');
     }
     public function actionAddPost($title, $text)
     {
