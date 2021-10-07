@@ -17,8 +17,8 @@ $this->title = 'News';
 <div class="site-index">
     <div class="jumbotron text-center bg-transparent">
         <h1 class="display-4">Новости</h1>
-        <form class="text-center" action="" method="GET">
-            <input name="input" type="text" placeholder="Введите название поста"><br><br>
+        <form class="text-center" action="/posts" method="GET">
+            <input name="params" type="text" placeholder="Введите название поста"><br><br>
             <button type="submit" class="btn btn-outline-secondary">Искать новость</button>
         </form>
     </div>

@@ -6,7 +6,6 @@ use app\models\ApiPosts;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
@@ -77,37 +76,35 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        $bd = new Posts();
-        if (!empty(yii::$app->request->get()))
-        {
-            $postTitle = yii::$app->request->get()['input'];
-            $posts = $bd->getPostByName($postTitle);
-
-            return $this->render('index', ['posts' => $posts]);
-        }
-        else{
-            $posts = $bd->getAll();
-            return $this->render('index', ['posts' => $posts]  );
-        }
+        $posts = new PostService();
+        $data =  ['posts' => $posts->all()];
+        return $this->render('index', $data);
     }
 
-    public function actionDeletePost($id)
+    public function actionView($params)
     {
-        $bd = new Posts();
-        $bd->deletePost($id);
+        $posts = new PostService();
+        $data = ['posts' => $posts->view($params)];
+        return $this->render('index', $data);
+    }
+
+    public function actionDelete($id)
+    {
+        $posts = new PostService();
+        $result = $posts->delete($id);
         return $this->redirect('/');
     }
 
-    public function actionUpdatePost($id, $title, $text)
+    public function actionUpdate($id, $title, $text)
     {
-            $bd = new Posts();
-            $bd->updatePost($id, $title, $text);
-            return $this->redirect('/');
+        $posts = new PostService();
+        $result = $posts->update($id, $title, $text);
+        return $this->redirect('/');
     }
-    public function actionAddPost($title, $text)
+    public function actionAdd($title, $text)
     {
-        $bd = new Posts();
-        $bd->addPost($title, $text);
+        $posts = new PostService();
+        $result = $posts->add($title, $text);
         return $this->redirect('/');
     }
     /**
