@@ -3,50 +3,78 @@
 namespace app\controllers;
 
 use Yii;
+use yii\helpers\Json;
 use yii\rest\ActiveController;
 use yii\web\Controller;
 use yii\web\Response;
 use app\models\ApiPosts;
+use app\services\PostService;
 
-class ApiController extends ActiveController
+/**
+ * Post API
+ */
+class ApiController extends Controller
 {
-    public $modelClass = 'app\models\ApiPosts';
-
-    public function actionIndex()
+    /**
+     * @return Response
+     */
+    public function actionIndex(): Response
     {
-        $posts = ApiPosts::find();
-        return $this->asJson($posts);
-    }
-    public function actionView($id)
-    {
-        $post = ApiPosts::findOne(['id' => $id]);
-        return $this->asJson($post);
-    }
-    public function actionViewByTitle($title)
-    {
-        $posts = ApiPosts::findAll(['title'=>$title]);
-        return $this->asJson($posts);
+        $posts = new PostService();
+        return $this->asJson($posts->all());
     }
 
-    public function actionAdd()
+    /**
+     * @param int $id
+     * @return Response
+     */
+    public function actionView(int $id): Response
+    {
+        $post = new PostService();
+        return $this->asJson($post->viewById($id));
+    }
+
+    /**
+     * @param string $title
+     * @return Response
+     */
+    public function actionViewByTitle(string $title): Response
+    {
+        $posts = new PostService();
+        return $this->asJson($posts->view($title));
+    }
+
+    /**
+     * @return Response
+     */
+    public function actionAdd(): Response
     {
         $params = Yii::$app->request->post();
-        $newPost = new ApiPosts();
-        $newPost->title = $params['title'];
-        $newPost->text = $params['text'];
-        $newPost->author = Yii::$app->user->id;
-        $newPost->save();
-        return $this->asJson(Yii::$app->db->getLastInsertID());
+        $post = new PostService();
+        $post->add($params['title'], $params['text'], $params['author']);
+        return $this->asJson(1);///////////////////////////////////
     }
 
-    public function actionPut($id)
+    /**
+     * @param int $id
+     * @return Response
+     */
+    public function actionPut(int $id): Response
     {
         $params = Yii::$app->request->post();
-        $newPost = ApiPosts::findOne(['id' => $id]);
-        $newPost->title = $params['title'];
-        $newPost->text = $params['text'];
-        if($newPost->update() === false)
-            return $this->asJson('Failed');
-        return $this->asJson('Successful');
+        $post = new PostService();
+        $post->update($id, $params['title'], $params['text']);
+        return $this->asJson(1);///////////////////////////////////
+    }
+
+    /**
+     * @param int $id
+     * @return Response
+     */
+    public function actionDelete(int $id): Response
+    {
+        $post = new PostService();
+        $post->delete($id);
+        return $this->asJson(1);///////////////////////////////////
     }
 }

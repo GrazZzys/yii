@@ -18,7 +18,7 @@ $this->title = 'News';
     <div class="jumbotron text-center bg-transparent">
         <h1 class="display-4">Новости</h1>
         <form class="text-center" action="/posts" method="GET">
-            <input name="params" type="text" placeholder="Введите название поста"><br><br>
+            <input name="title" type="text" placeholder="Введите название поста"><br><br>
             <button type="submit" class="btn btn-outline-secondary">Искать новость</button>
         </form>
     </div>
@@ -29,6 +29,12 @@ $this->title = 'News';
             <textarea name="text" cols="21" rows="10"></textarea>
             <button type="submit"  class="btn btn-outline-secondary">Изменить новость</button>
         </form>
+        <?php if( Yii::$app->session->hasFlash('success') ): ?>
+        <div class="alert alert-success alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <?php echo Yii::$app->session->getFlash('success'); ?>
+        </div>
+        <?php endif;?>
     </div>
         <?php if(isset($posts[0])): ?>
         <div class="body-content">

@@ -3,14 +3,16 @@
 namespace app\controllers;
 
 use app\models\ApiPosts;
+use app\services\PostService;
 use Yii;
+use yii\base\Exception;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\Response;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
-use app\models\Posts;
+
 
 class SiteController extends Controller
 {
@@ -22,7 +24,7 @@ class SiteController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['logout', 'update-post', 'add-post', 'delete-post'],
+                'only' => ['logout', 'update', 'add', 'delete'],
                 'rules' => [
                     [
                         'actions' => ['logout'],
@@ -30,7 +32,7 @@ class SiteController extends Controller
                         'roles' => ['@'],
                     ],
                     [
-                        'actions' => ['update-post', 'delete-post'],
+                        'actions' => ['update', 'delete'],
                         'allow' => true,
                         'roles' => ['updatePost'],
                         'roleParams' => function() {
@@ -38,7 +40,7 @@ class SiteController extends Controller
                         },
                     ],
                     [
-                        'actions' => ['add-post'],
+                        'actions' => ['add'],
                         'allow' => true,
                         'roles' => ['createPost'],
                     ],
@@ -56,7 +58,7 @@ class SiteController extends Controller
     /**
      * {@inheritdoc}
      */
-    public function actions()
+    public function actions(): array
     {
         return [
             'error' => [
@@ -68,43 +70,83 @@ class SiteController extends Controller
             ],
         ];
     }
-
     /**
-     * Displays homepage.
+     * Displays homepage and all posts.
      *
      * @return string
      */
-    public function actionIndex()
+    public function actionIndex() : string
     {
         $posts = new PostService();
         $data =  ['posts' => $posts->all()];
         return $this->render('index', $data);
     }
 
-    public function actionView($params)
+    /**
+     * Displays homepage and posts by title.
+     *
+     * @param string $title
+     * @return string
+     */
+    public function actionView(string $title): string
     {
         $posts = new PostService();
-        $data = ['posts' => $posts->view($params)];
+        $res = $posts->view($title);
+        try{
+            if(empty($res))
+                throw new Exception("Ничего не найдено");
+        }catch (Exception $e){
+            Yii::$app->session->setFlash('success', $e->getMessage());
+        }
+        $data = ['posts' => $res];
+        return $this->render('index', $data);
+    }
+    public function actionViewById(string $title): string
+    {
+        $posts = new PostService();
+        $data = ['posts' => $posts->view($title)];
         return $this->render('index', $data);
     }
 
-    public function actionDelete($id)
+    /**
+     * Delete post by id.
+     *
+     * @param int $id
+     * @return Response
+     */
+    public function actionDelete(int $id): Response
     {
         $posts = new PostService();
         $result = $posts->delete($id);
         return $this->redirect('/');
     }
 
-    public function actionUpdate($id, $title, $text)
+    /**
+     * Update post by id.
+     *
+     * @param int $id
+     * @param string $title
+     * @param string $text
+     * @return Response
+     */
+    public function actionUpdate(int $id, string $title, string $text): Response
     {
         $posts = new PostService();
         $result = $posts->update($id, $title, $text);
         return $this->redirect('/');
     }
-    public function actionAdd($title, $text)
+
+    /**
+     * Add post.
+     *
+     * @param string $title
+     * @param string $text
+     * @return Response
+     */
+    public function actionAdd(string $title, string $text): Response
     {
         $posts = new PostService();
-        $result = $posts->add($title, $text);
+        $result = $posts->add($title, $text, Yii::$app->user->id);
         return $this->redirect('/');
     }
     /**
