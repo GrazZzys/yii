@@ -56,7 +56,7 @@ class PostService
      * @return int
      * @throws Exception
      */
-    public function delete(int $id)
+    public function delete(int $id): int
     {
         $db = new Posts();
         return $db->deletePost($id);

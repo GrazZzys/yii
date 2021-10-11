@@ -96,7 +96,7 @@ class SiteController extends Controller
             if(empty($res))
                 throw new Exception("Ничего не найдено");
         }catch (Exception $e){
-            Yii::$app->session->setFlash('success', $e->getMessage());
+            Yii::$app->session->setFlash('danger', $e->getMessage());
         }
         $data = ['posts' => $res];
         return $this->render('index', $data);
