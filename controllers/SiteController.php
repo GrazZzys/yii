@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\models\ApiPosts;
+use app\services\DataService;
 use app\services\PostService;
 use Yii;
 use yii\base\Exception;
@@ -70,16 +71,18 @@ class SiteController extends Controller
             ],
         ];
     }
+
     /**
      * Displays homepage and all posts.
      *
      * @return string
+     * @throws \yii\db\Exception
      */
     public function actionIndex() : string
     {
-        $posts = new PostService();
-        $data =  ['posts' => $posts->all()];
-        return $this->render('index', $data);
+        $dataService = new DataService();
+        $dataProvider = $dataService->all();
+        return $this->render('index', ['dataProvider' => $dataProvider]);
     }
 
     /**
@@ -87,25 +90,13 @@ class SiteController extends Controller
      *
      * @param string $title
      * @return string
+     * @throws \yii\db\Exception
      */
     public function actionView(string $title): string
     {
-        $posts = new PostService();
-        $res = $posts->view($title);
-        try{
-            if(empty($res))
-                throw new Exception("Ничего не найдено");
-        }catch (Exception $e){
-            Yii::$app->session->setFlash('danger', $e->getMessage());
-        }
-        $data = ['posts' => $res];
-        return $this->render('index', $data);
-    }
-    public function actionViewById(string $title): string
-    {
-        $posts = new PostService();
-        $data = ['posts' => $posts->view($title)];
-        return $this->render('index', $data);
+        $dataService = new DataService();
+        $dataProvider = $dataService->getByTitle($title);
+        return $this->render('index', ['dataProvider' => $dataProvider]);
     }
 
     /**
@@ -113,11 +104,17 @@ class SiteController extends Controller
      *
      * @param int $id
      * @return Response
+     * @throws \Throwable
      */
     public function actionDelete(int $id): Response
     {
-        $posts = new PostService();
-        $result = $posts->delete($id);
+        $post = new PostService();
+        try {
+            $this->asJson($post->delete($id));
+            Yii::$app->session->setFlash('success', 'success');
+        } catch (Exception $e) {
+            Yii::$app->session->setFlash('danger', $e->getMessage());
+        }
         return $this->redirect('/');
     }
 
@@ -128,11 +125,18 @@ class SiteController extends Controller
      * @param string $title
      * @param string $text
      * @return Response
+     * @throws \Throwable
      */
-    public function actionUpdate(int $id, string $title, string $text): Response
+    public function actionUpdate(int $id, string $title='', string $text=''): Response
     {
-        $posts = new PostService();
-        $result = $posts->update($id, $title, $text);
+        $params = Yii::$app->request->post();
+        $post = new PostService();
+        try {
+            $res = $post->update($id, $title, $text);
+            Yii::$app->session->setFlash('success', 'success');
+        } catch (Exception $e) {
+            Yii::$app->session->setFlash('danger', $e->getMessage());
+        }
         return $this->redirect('/');
     }
 
@@ -143,10 +147,15 @@ class SiteController extends Controller
      * @param string $text
      * @return Response
      */
-    public function actionAdd(string $title, string $text): Response
+    public function actionAdd(string $title, string $text=''): Response
     {
-        $posts = new PostService();
-        $result = $posts->add($title, $text, Yii::$app->user->id);
+        $post = new PostService();
+        try{
+            $post->add($title, $text, Yii::$app->user->id);
+            Yii::$app->session->setFlash('success', 'success');
+        }catch (Exception $e){
+            Yii::$app->session->setFlash('danger', $e->getMessage());
+        }
         return $this->redirect('/');
     }
     /**

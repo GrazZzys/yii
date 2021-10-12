@@ -63,11 +63,11 @@ $config = [
                 'update' => 'site/update',
 
                 'GET api.posts' => 'api/index',
-                'GET api.post/<id:\d+>' => 'api/view',
-                'GET api.post/<title:\w+>' => 'api/view-by-title',
-                'POST api.post/add' => 'api/add',
-                'PUT,PATCH api.post/<id:\d+>' => 'api/put'   ,
-                'DELETE api.post/<id:\d+>' => 'api/delete',
+                'GET api.posts/<id:\d+>' => 'api/view-by-id',
+                'GET api.posts/<title:\w+>' => 'api/view',
+                'POST api.posts' => 'api/add',
+                'PUT,PATCH api.posts/<id:\d+>' => 'api/update'   ,
+                'DELETE api.posts/<id:\d+>' => 'api/delete',
 
             ],
         ],

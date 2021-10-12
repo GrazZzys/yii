@@ -1,9 +1,10 @@
 <?php
 
-namespace app\services;
+namespace app\models;
 use app\models\Posts;
+use Codeception\Template\Api;
 
-class PostService
+class PostsOnActiveRecord
 {
     /**
      *
@@ -29,10 +30,10 @@ class PostService
 
     /**
      * @param int $id
-     * @return Posts
+     * @return array
      * @throws \yii\db\Exception
      */
-    public function viewById(int $id) : Posts
+    public function viewById(int $id): array
     {
         $db = new Posts();
         return $db->getPostById($id);
@@ -59,7 +60,7 @@ class PostService
     public function delete(int $id)
     {
         $db = new Posts();
-        return $db->remove($id);
+        return $db->delete($id);
     }
 
     /**
@@ -72,9 +73,9 @@ class PostService
      * @throws \yii\db\Exception
      * @throws \yii\db\StaleObjectException
      */
-    public function update(int $id, string $title, string $text): int
+    public function update(int $id, string $title, string $text, string $author): int
     {
         $db = new Posts();
-        return $db->change($id, $title, $text);
+        return $db->change($id, $title, $text, $author);
     }
 }

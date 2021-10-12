@@ -2,74 +2,102 @@
 
 namespace app\models;
 
-use phpDocumentor\Reflection\Types\Mixed_;
 use Yii;
-use yii\base\Model;
-use yii\db\DataReader;
+use yii\db\ActiveRecord;
 use yii\db\Exception;
 
 /**
- * Post model
+ * @property int $id
+ * @property string $title
+ * @property string $text
+ * @property string $author
  */
-class Posts extends Model
+class Posts extends ActiveRecord
 {
     /**
-     * @return array|DataReader
-     * @throws Exception
+     * return table name
+     *
+     * @return string
      */
-    public static function getAll()
+    public static function tableName() : string
     {
-        $connection = Yii::$app->db;
-        $command = $connection->CreateCommand("SELECT * FROM posts");
-        return $command->queryAll();
+        return '{{posts}}';
     }
 
     /**
-     * @param int $id
-     * @return array|DataReader
+     * @return array
      * @throws Exception
      */
-    public function getPostById(int $id)
+    public function all(): array
     {
-        $connection = Yii::$app->db;
-        $command = $connection->CreateCommand("select * from posts WHERE id = \"$id\"");
-        return $command->queryAll();
+        $res = self::find()->all();
+        if(empty($res))
+            throw new Exception('Ничего не найдено');
+        return $res;
     }
 
     /**
      * @param string $title
-     * @return array|DataReader
+     * @return array
      * @throws Exception
      */
-    public function getPostByName(string $title)
+    public function getPostByTitle(string $title) : array
     {
-        $connection = Yii::$app->db;
-        $command = $connection->CreateCommand("select * from posts WHERE title = \"$title\"");
-        return $command->queryAll();
+        $res = self::findAll(['title' => $title]);
+        if(empty($res))
+            throw new Exception('Ничего не найдено');
+        return $res;
     }
 
     /**
      * @param int $id
-     * @return int
+     * @return Posts
      * @throws Exception
      */
-    public function deletePost(int $id): int
+    public function getPostById(int $id): Posts
     {
-        $connection = Yii::$app->db;
-        return $connection->CreateCommand()->delete('posts', "id = $id")->execute();
+        $res = self::findOne($id);
+        if(empty($res))
+            throw new Exception('Пост не найден');
+        return $res;
     }
 
     /**
      * @param string $title
      * @param string $text
      * @param string $author
+     * @return bool
+     * @throws Exception
+     * @throws \Throwable
+     */
+    public function add(string $title, string $text, string $author) : bool
+    {
+        $post = new ApiPosts();
+        $post->title = $title;
+        $post->text = $text;
+        $post->author = $author;
+        $res = $post->insert();
+        if ($res === false)
+            throw new Exception('Ошибка добавления поста');
+        return $res;
+    }
+
+    /**
+     * @param int $id
      * @return int
      * @throws Exception
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
      */
-    public function addPost(string $title, string $text, string $author = ''): int
+    public function remove(int $id): int
     {
-        $connection = Yii::$app->db;
-        return $connection->CreateCommand()->batchInsert('posts', ['title', 'text', 'author'], [[$title, $text, $author]])->execute();
+        $post = self::findOne($id);
+        if(empty($post))
+            throw new Exception('Пост не найден');
+        $res = $post->delete();
+        if($res === false)
+            throw new Exception('Ошибка удаления');
+        return $res;
     }
 
     /**
@@ -78,10 +106,21 @@ class Posts extends Model
      * @param string $text
      * @return int
      * @throws Exception
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
      */
-    public function updatePost(int $id, string $title, string $text): int
+    public function change(int $id, string $title, string $text) : int
     {
-        $connection = Yii::$app->db;
-        return $connection->CreateCommand()->update('posts', ['title' => $title, 'text' => $text], "id = $id")->execute();
+        $post = self::findOne($id);
+        if(empty($post))
+            throw new Exception('Пост не найден');
+        $post->title = $title;
+        $post->text = $text;
+        $res = $post->update();
+        if($res === false)
+            throw new Exception('Ошибка обновления');
+        else if ($res === 0)
+            throw new Exception('Нечего обновлять');
+        return $res;
     }
 }
