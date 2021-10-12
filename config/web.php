@@ -57,10 +57,11 @@ $config = [
             'enableStrictParsing' => false,
             'rules' => [
                 'GET /' => 'site/index',
+                'GET /post' => 'site/view-by-id',
                 'GET /posts' => 'site/view',
                 'delete' => 'site/delete',
-                'add' => 'site/add',
-                'update' => 'site/update',
+                'POST add' => 'site/add',
+                'POST update' => 'site/update',
 
                 'GET api.posts' => 'api/index',
                 'GET api.posts/<id:\d+>' => 'api/view-by-id',

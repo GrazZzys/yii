@@ -16,31 +16,33 @@ $this->title = 'News';
         </form>
     </div>
     <?php
-    try {
-        echo \yii\grid\GridView::widget([
-            'dataProvider' => $dataProvider,
-            'columns' => [
-                [
-                    'class' => 'yii\grid\ActionColumn',
-                    'template' => '{update} {delete}',
+
+    echo \yii\grid\GridView::widget([
+        'dataProvider' => $dataProvider,
+
+        'columns' => [
+            ['class' => 'yii\grid\SerialColumn'],
+            'id',
+            'title',
+            'text',
+            [
+                'class' => 'yii\grid\ActionColumn',
+                'template' => '{view}',
+                'headerOptions' => ['width' => '80'],
+                'buttons' => [
+                    'view' => function($url,$model){
+                        return Html::a('Открыть', "/post?id=$model->id");
+                    },
                 ],
-                [
-                    'attribute' => 'id'
-                ],
-                [
-                    'attribute' => 'title'
-                ],
-                [
-                    'attribute' => 'text'
-                ],
-            ]
-        ]);
-    } catch (Exception $e) {
-        echo $e->getMessage();
-    }
+            ],
+
+        ],
+    ]);
+
     ?>
     <?php
     echo Html::beginForm('update', 'GET');
+    echo Html::label('Изменить');
     echo Html::input('text', 'id');
     echo Html::input('text', 'title');
     echo Html::input('text', 'text');

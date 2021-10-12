@@ -100,6 +100,18 @@ class SiteController extends Controller
     }
 
     /**
+     * @param int $id
+     * @return string
+     * @throws \yii\db\Exception
+     */
+    public function actionViewById(int $id): string
+    {
+        $dataService = new DataService();
+        $dataProvider = $dataService->getById($id);
+        return $this->render('post', ['dataProvider' => $dataProvider]);
+    }
+
+    /**
      * Delete post by id.
      *
      * @param int $id
@@ -108,6 +120,7 @@ class SiteController extends Controller
      */
     public function actionDelete(int $id): Response
     {
+        $params = Yii::$app->request->post();
         $post = new PostService();
         try {
             $this->asJson($post->delete($id));
@@ -121,18 +134,15 @@ class SiteController extends Controller
     /**
      * Update post by id.
      *
-     * @param int $id
-     * @param string $title
-     * @param string $text
      * @return Response
      * @throws \Throwable
      */
-    public function actionUpdate(int $id, string $title='', string $text=''): Response
+    public function actionUpdate(): Response
     {
         $params = Yii::$app->request->post();
         $post = new PostService();
         try {
-            $res = $post->update($id, $title, $text);
+            $res = $post->update($params['id'], $params['title'], $params['text']);
             Yii::$app->session->setFlash('success', 'success');
         } catch (Exception $e) {
             Yii::$app->session->setFlash('danger', $e->getMessage());
@@ -143,15 +153,14 @@ class SiteController extends Controller
     /**
      * Add post.
      *
-     * @param string $title
-     * @param string $text
      * @return Response
      */
-    public function actionAdd(string $title, string $text=''): Response
+    public function actionAdd(): Response
     {
+        $params = Yii::$app->request->post();
         $post = new PostService();
         try{
-            $post->add($title, $text, Yii::$app->user->id);
+            $post->add($params['title'], $params['text'], Yii::$app->user->id);
             Yii::$app->session->setFlash('success', 'success');
         }catch (Exception $e){
             Yii::$app->session->setFlash('danger', $e->getMessage());

@@ -49,4 +49,21 @@ class DataService extends ActiveRecord
             'query' => $query
         ]);
     }
+
+    /**
+     * @param $id
+     * @return ActiveDataProvider
+     * @throws Exception
+     */
+    public function getById($id) : ActiveDataProvider
+    {
+        $query = self::find()->where(['id' => $id]);
+
+        if (empty($query))
+            throw new Exception('Ничего не найдено');
+
+        return new ActiveDataProvider([
+            'query' => $query
+        ]);
+    }
 }
