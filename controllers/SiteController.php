@@ -3,6 +3,8 @@
 namespace app\controllers;
 
 use app\models\ApiPosts;
+use app\models\SearchForm;
+use app\models\UpdateForm;
 use app\services\DataService;
 use app\services\PostService;
 use Yii;
@@ -37,7 +39,7 @@ class SiteController extends Controller
                         'allow' => true,
                         'roles' => ['updatePost'],
                         'roleParams' => function() {
-                            return ['post' => ApiPosts::findOne(['id' => Yii::$app->request->get('id')])];
+                            return ['post' => ApiPosts::findOne(['id' => Yii::$app->request->post('UpdateForm')['id']])];
                         },
                     ],
                     [
@@ -80,23 +82,25 @@ class SiteController extends Controller
      */
     public function actionIndex() : string
     {
+        $searchForm = new SearchForm();
         $dataService = new DataService();
         $dataProvider = $dataService->all();
-        return $this->render('index', ['dataProvider' => $dataProvider]);
+        return $this->render('index', ['dataProvider' => $dataProvider, 'model' => $searchForm]);
     }
 
     /**
      * Displays homepage and posts by title.
      *
-     * @param string $title
      * @return string
      * @throws \yii\db\Exception
      */
-    public function actionView(string $title): string
+    public function actionView(): string
     {
+        $params = Yii::$app->request->get('SearchForm');
         $dataService = new DataService();
-        $dataProvider = $dataService->getByTitle($title);
-        return $this->render('index', ['dataProvider' => $dataProvider]);
+        $searchForm = new SearchForm();
+        $dataProvider = $dataService->getByTitle($params['query']);
+        return $this->render('index', ['dataProvider' => $dataProvider, 'model' => $searchForm]);
     }
 
     /**
@@ -108,7 +112,26 @@ class SiteController extends Controller
     {
         $dataService = new DataService();
         $dataProvider = $dataService->getById($id);
-        return $this->render('post', ['dataProvider' => $dataProvider]);
+        $updateForm = new UpdateForm($id);
+        return $this->render('post', ['dataProvider' => $dataProvider, 'model' => $updateForm]);
+    }
+
+    /**
+     * @param $id
+     * @return string
+     * @throws \yii\db\Exception
+     */
+    public function actionViewChange(): string
+    {
+        $params = Yii::$app->request->get('UpdateForm');
+        $updateForm = new UpdateForm($params['id']);
+        return $this->render('change', ['model' => $updateForm]);
+    }
+
+    public function actionViewCreate(): string
+    {
+        $updateForm = new UpdateForm();
+        return $this->render('create', ['model' => $updateForm]);
     }
 
     /**
@@ -118,12 +141,12 @@ class SiteController extends Controller
      * @return Response
      * @throws \Throwable
      */
-    public function actionDelete(int $id): Response
+    public function actionDelete(): Response
     {
-        $params = Yii::$app->request->post();
+        $params = Yii::$app->request->post('UpdateForm');
         $post = new PostService();
         try {
-            $this->asJson($post->delete($id));
+            $post->delete($params['id']);
             Yii::$app->session->setFlash('success', 'success');
         } catch (Exception $e) {
             Yii::$app->session->setFlash('danger', $e->getMessage());
@@ -139,7 +162,7 @@ class SiteController extends Controller
      */
     public function actionUpdate(): Response
     {
-        $params = Yii::$app->request->post();
+        $params = Yii::$app->request->post('UpdateForm');
         $post = new PostService();
         try {
             $res = $post->update($params['id'], $params['title'], $params['text']);
@@ -157,7 +180,7 @@ class SiteController extends Controller
      */
     public function actionAdd(): Response
     {
-        $params = Yii::$app->request->post();
+        $params = Yii::$app->request->post('UpdateForm');
         $post = new PostService();
         try{
             $post->add($params['title'], $params['text'], Yii::$app->user->id);

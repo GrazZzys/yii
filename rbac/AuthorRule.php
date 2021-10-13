@@ -2,6 +2,7 @@
 
 namespace app\rbac;
 
+use Yii;
 use yii\rbac\Item;
 use yii\rbac\Rule;
 use app\models\Posts;
@@ -19,6 +20,6 @@ class AuthorRule extends Rule
     public function execute($user, $item, $params)
     {
         $author = $params['post']['author'];
-        return isset($params['post']) ? $author == $user : false;
+        return isset($params['post']) && $author == $user;
     }
 }
