@@ -3,15 +3,19 @@
 namespace app\controllers;
 
 use app\models\ApiPosts;
+use app\models\SearchForm;
+use app\models\UpdateForm;
+use app\services\DataService;
+use app\services\PostService;
 use Yii;
+use yii\base\Exception;
 use yii\filters\AccessControl;
 use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
-use app\models\Posts;
+
 
 class SiteController extends Controller
 {
@@ -23,7 +27,7 @@ class SiteController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['logout', 'update-post', 'add-post', 'delete-post'],
+                'only' => ['logout', 'update', 'add', 'delete'],
                 'rules' => [
                     [
                         'actions' => ['logout'],
@@ -31,15 +35,15 @@ class SiteController extends Controller
                         'roles' => ['@'],
                     ],
                     [
-                        'actions' => ['update-post', 'delete-post'],
+                        'actions' => ['update', 'delete'],
                         'allow' => true,
                         'roles' => ['updatePost'],
                         'roleParams' => function() {
-                            return ['post' => ApiPosts::findOne(['id' => Yii::$app->request->get('id')])];
+                            return ['post' => ApiPosts::findOne(['id' => Yii::$app->request->post('UpdateForm')['id']])];
                         },
                     ],
                     [
-                        'actions' => ['add-post'],
+                        'actions' => ['add'],
                         'allow' => true,
                         'roles' => ['createPost'],
                     ],
@@ -57,7 +61,7 @@ class SiteController extends Controller
     /**
      * {@inheritdoc}
      */
-    public function actions()
+    public function actions(): array
     {
         return [
             'error' => [
@@ -71,43 +75,119 @@ class SiteController extends Controller
     }
 
     /**
-     * Displays homepage.
+     * Displays homepage and all posts.
      *
      * @return string
+     * @throws \yii\db\Exception
      */
-    public function actionIndex()
+    public function actionIndex() : string
     {
-        $bd = new Posts();
-        if (!empty(yii::$app->request->get()))
-        {
-            $postTitle = yii::$app->request->get()['input'];
-            $posts = $bd->getPostByName($postTitle);
-
-            return $this->render('index', ['posts' => $posts]);
-        }
-        else{
-            $posts = $bd->getAll();
-            return $this->render('index', ['posts' => $posts]  );
-        }
+        $searchForm = new SearchForm();
+        $dataService = new DataService();
+        $dataProvider = $dataService->all();
+        return $this->render('index', ['dataProvider' => $dataProvider, 'model' => $searchForm]);
     }
 
-    public function actionDeletePost($id)
+    /**
+     * Displays homepage and posts by title.
+     *
+     * @return string
+     * @throws \yii\db\Exception
+     */
+    public function actionView(): string
     {
-        $bd = new Posts();
-        $bd->deletePost($id);
+        $params = Yii::$app->request->get('SearchForm');
+        $dataService = new DataService();
+        $searchForm = new SearchForm();
+        $dataProvider = $dataService->getByTitle($params['query']);
+        return $this->render('index', ['dataProvider' => $dataProvider, 'model' => $searchForm]);
+    }
+
+    /**
+     * @param int $id
+     * @return string
+     * @throws \yii\db\Exception
+     */
+    public function actionViewById(int $id): string
+    {
+        $dataService = new DataService();
+        $dataProvider = $dataService->getById($id);
+        $updateForm = new UpdateForm($id);
+        return $this->render('post', ['dataProvider' => $dataProvider, 'model' => $updateForm]);
+    }
+
+    /**
+     * @param $id
+     * @return string
+     * @throws \yii\db\Exception
+     */
+    public function actionViewChange(): string
+    {
+        $params = Yii::$app->request->get('UpdateForm');
+        $updateForm = new UpdateForm($params['id']);
+        return $this->render('change', ['model' => $updateForm]);
+    }
+
+    public function actionViewCreate(): string
+    {
+        $updateForm = new UpdateForm();
+        return $this->render('create', ['model' => $updateForm]);
+    }
+
+    /**
+     * Delete post by id.
+     *
+     * @param int $id
+     * @return Response
+     * @throws \Throwable
+     */
+    public function actionDelete(): Response
+    {
+        $params = Yii::$app->request->post('UpdateForm');
+        $post = new PostService();
+        try {
+            $post->delete($params['id']);
+            Yii::$app->session->setFlash('success', 'success');
+        } catch (Exception $e) {
+            Yii::$app->session->setFlash('danger', $e->getMessage());
+        }
         return $this->redirect('/');
     }
 
-    public function actionUpdatePost($id, $title, $text)
+    /**
+     * Update post by id.
+     *
+     * @return Response
+     * @throws \Throwable
+     */
+    public function actionUpdate(): Response
     {
-            $bd = new Posts();
-            $bd->updatePost($id, $title, $text);
-            return $this->redirect('/');
+        $params = Yii::$app->request->post('UpdateForm');
+        $post = new PostService();
+        try {
+            $res = $post->update($params['id'], $params['title'], $params['text']);
+            Yii::$app->session->setFlash('success', 'success');
+        } catch (Exception $e) {
+            Yii::$app->session->setFlash('danger', $e->getMessage());
+        }
+        return $this->redirect('/');
     }
-    public function actionAddPost($title, $text)
+
+    /**
+     * Add post.
+     *
+     * @return Response
+     */
+    public function actionAdd(): Response
     {
-        $bd = new Posts();
-        $bd->addPost($title, $text);
+        $params = Yii::$app->request->post('UpdateForm');
+        $post = new PostService();
+        try{
+            $post->add($params['title'], $params['text'], Yii::$app->user->id);
+            Yii::$app->session->setFlash('success', 'success');
+        }catch (Exception $e){
+            Yii::$app->session->setFlash('danger', $e->getMessage());
+        }
         return $this->redirect('/');
     }
     /**

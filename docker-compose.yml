@@ -7,7 +7,8 @@ services:
       - ./:/app:delegated
     ports:
       - '8000:80'
-
+    env_file:
+      - .env
   mysql:
     image: mariadb:10.5
     ports:

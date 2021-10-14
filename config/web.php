@@ -17,7 +17,8 @@ $config = [
             'cookieValidationKey' => 'OGq1eryImIYg-s6yW1zZSKL-4NU25EnG',
             'parsers' => [
                 'application/json' => 'yii\web\JsonParser',
-            ]
+            ],
+            'enableCsrfValidation' => false,
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -55,17 +56,21 @@ $config = [
             'showScriptName' => false,
             'enableStrictParsing' => false,
             'rules' => [
-                '/' => 'site/index',
-                'delete' => 'site/delete-post',
-                'add' => 'site/add-post',
-                'update' => 'site/update-post',
+                'GET /' => 'site/index',
+                'GET /post' => 'site/view-by-id',
+                'GET /posts' => 'site/view',
+                'GET /change' => 'site/view-change',
+                'GET /create' => 'site/view-create',
+                'DELETE /delete' => 'site/delete',
+                'POST /add' => 'site/add',
+                'PUT,PATCH /update' => 'site/update',
 
-                'GET posts' => 'api/index',
-                'GET post/<id:\d+>' => 'api/view',
-                'GET post/<title:\w+>' => 'api/view-by-title',
-                'POST post/add' => 'api/add',
-                'PUT,PATCH post/<id:\d+>' => 'api/put'   ,
-                'DELETE post/<id:\d+>' => 'api/delete',
+                'GET api.posts' => 'api/index',
+                'GET api.posts/<id:\d+>' => 'api/view-by-id',
+                'GET api.posts/<title:\w+>' => 'api/view',
+                'POST api.posts' => 'api/add',
+                'PUT,PATCH api.posts/<id:\d+>' => 'api/update'   ,
+                'DELETE api.posts/<id:\d+>' => 'api/delete',
 
             ],
         ],
